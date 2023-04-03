@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
+import java.util.LinkedList;
 
 public class TodoServer {
     protected final int PORT;
@@ -23,6 +23,7 @@ public class TodoServer {
     public void start() throws IOException {
         System.out.println("Starting server at " + PORT + "...");
         Gson gson = new Gson();
+        LinkedList<Command> commandList = new LinkedList<>();
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             while (true) {
@@ -32,15 +33,21 @@ public class TodoServer {
 
                     String taskJson = in.readLine();
                     Message taskMessage = gson.fromJson(taskJson, Message.class);
+                    String task = taskMessage.getTask();
                     switch (taskMessage.getType()) {
                         case "ADD":
-                            todos.addTask(taskMessage.getTask());
+                            todos.addTask(task);
+                            commandList.add(() -> todos.removeTask(task));
                             break;
                         case "REMOVE":
-                            todos.removeTask(taskMessage.getTask());
+                            todos.removeTask(task);
+                            commandList.add(() -> todos.addTask(task));
                             break;
                         case "RESTORE":
-                            continue;
+                            if (commandList.size() > 0) {
+                                commandList.getLast().execute();
+                                commandList.removeLast();
+                            }
                     }
 
                     out.println(todos.getAllTasks());

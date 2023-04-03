@@ -15,7 +15,8 @@ public class Client {
     public static void main(String[] args) {
         Gson gson = new Gson();
 
-        Message message = new Message(Message.MessageType.REMOVE, "Бублик");
+        //Message message = new Message(Message.MessageType.REMOVE, "Дерево");
+        Message message = new Message(Message.MessageType.RESTORE);
         String jsonMessage = gson.toJson(message);
 
         try (Socket socket = new Socket("localhost", PORT);
